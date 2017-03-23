@@ -13,7 +13,6 @@ XBEEPacketReceiver::XBEEPacketReceiver(const char* header, uint32_t timeout){
 paktype_t XBEEPacketReceiver::receivePacket(pakdata_t* data){
     char rawtype = 0;
     paktype_t type = PAKTYP_NONE;
-
     if(this->checkForHeader()){
         if(Serial.readBytes(&rawtype, 1) == 1){
             switch((paktype_t) rawtype){
@@ -31,7 +30,7 @@ paktype_t XBEEPacketReceiver::receivePacket(pakdata_t* data){
                 if(this->getData(&data->data1)
                     && this->getData(&data->data2)
                     && this->getData(&data->data3)
-                    && this->validCRC(data->data1 + data->data2 + data->data3 + PAKTYP_RECORD)){
+                    && this->validCRC(data->data1 + data->data2 + data->data3 + rawtype)){
                     type = rawtype;
                 } else {
                     type = PAKTYP_BAD;
@@ -90,6 +89,7 @@ int XBEEPacketReceiver::checkForHeader(){
     while(headerReceived == 0
         && this->checkTimeout(startTime - 1000)
         && Serial.readBytes(&c, 1) > 0){
+
         for(int i = 1; i < this->headerSize; i++){
             this->buffer[i-1] = this->buffer[i];
         }

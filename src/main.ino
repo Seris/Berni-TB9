@@ -1,7 +1,8 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
-#include <EEPROM.h>
+// #include <EEPROM.h>
 
+#include "mod.h"
 #include "arm.h"
 #include "protocol.h"
 
@@ -10,15 +11,18 @@ LiquidCrystal lcd(8, 9, 2, 3, 5, 6);
 XBEEPacketSender XBEESender("RPM");
 XBEEPacketReceiver XBEEReceiver("RPM", 19000);
 
-opmod_t operatingMode = MOD_MENU;
+armcoord_t currentCoordinates = {0, 0, 0, 0};
+
+opmod_t operatingMode = MOD_RECORD;
+
 int lastArmPulse;
 
 paktype_t lastPacket = PAKTYP_NONE;
 pakdata_t lastData;
 
-armcoord_t currentCoordinates = {0, 0, 0};
-
 void setup(){
+    Serial.begin(9600);
+
     lcd.begin(16, 2);
     lcd.clear();
     lcd.home();
@@ -33,12 +37,10 @@ void setup(){
 void fetchIncomingPacket(){
     pakdata_t data;
     paktype_t packet = XBEEReceiver.receivePacket(&data);
-    if(packet == PAKTYP_RECORD){
-        data = lastData;
-    }
 
     if(packet == PAKTYP_FREE || packet == PAKTYP_RECORD) {
         lastPacket = packet;
+        lastData = data;
         XBEESender.sendACK();
     }
     else if(packet == PAKTYP_BAD) {
@@ -46,33 +48,33 @@ void fetchIncomingPacket(){
     }
 }
 
-
 void loop(){
     fetchIncomingPacket();
 
     switch(operatingMode){
         case MOD_MENU:
-        //menu();
+        //modMenu();
         break;
 
         case MOD_FREE:
-        // free_mod();
+        modFree();
         break;
 
-        case MOD_FREE_JOYSTICK:
-
+        case MOD_JOYSTICK:
+        //modJoystick();
         break;
 
         case MOD_RECORD:
-        //record();
+        modRecord();
         break;
 
         case MOD_PLAY:
-        //play_record();
+        //modPlay();
         break;
     }
 
-    if(lastArmPulse - millis() >= 20){
+    if(millis() - lastArmPulse >= 20){
         manageArm();
+        lastArmPulse = millis();
     }
 }

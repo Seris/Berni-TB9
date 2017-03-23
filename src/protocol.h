@@ -10,7 +10,7 @@
 
 #define RECV_BUF_SIZE 10
 
-#define SERIAL_TIMEOUT 3
+#define SERIAL_TIMEOUT 5
 #define RECV_DEFAULT_TIMEOUT 15000
 
 /**

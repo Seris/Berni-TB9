@@ -1,20 +1,44 @@
 #include <Arduino.h>
 #include "arm.h"
 
-/**
- * Convert data value to angle
- */
-void dataToAngle(){
 
-}
+int clampStatus = CLAMP_OPEN;
+int clampStartMoving = 0;
 
 /**
  * Send pulse to arm
  */
 void manageArm(){
-    
+    setServoAngle(SERVO1, currentCoordinates.wrist);
+    setServoAngle(SERVO2, currentCoordinates.finger_low);
+    setServoAngle(SERVO3, currentCoordinates.finger_high);
+
+    if(currentCoordinates.thumb > 520 && clampStatus == CLAMP_OPEN){
+        digitalWrite(CLAMP_CLOSE, HIGH);
+        digitalWrite(CLAMP_OPEN, LOW);
+        clampStatus = CLAMP_CLOSE;
+        clampStartMoving = millis();
+    } else if(currentCoordinates.thumb <= 520 && clampStatus == CLAMP_CLOSE) {
+        digitalWrite(CLAMP_OPEN, HIGH);
+        digitalWrite(CLAMP_CLOSE, LOW);
+        clampStatus = CLAMP_OPEN;
+        clampStartMoving = millis();
+    }
+
+    if(millis() - clampStartMoving > 1300){
+        digitalWrite(CLAMP_CLOSE, LOW);
+        digitalWrite(CLAMP_CLOSE, LOW);
+    }
 }
 
+
+
+/**
+ * Convert data value to angle
+ */
+double dataToAngle(int data){
+    return ((double) data) / 1024 * 90;
+}
 
 /**
  * Set angle of servomotor
@@ -22,9 +46,12 @@ void manageArm(){
  * @param angle in degree
  */
 void setServoAngle(int servo, double angle){
-    int32_t duration = 1500 - angle / 90 * 1000;
-    if(duration > 1500) duration = 1500;
-    else if(duration < 500) duration = 500;
+    int32_t duration = (int32_t) (1500 - angle / 90 * 1000);
+    if(duration > 1500)
+        duration = 1500;
+    else if(duration < 500)
+        duration = 500;
+
     pulse(servo, duration);
 }
 
@@ -50,6 +77,19 @@ void resetArm(){
         PORTL = 0x00;
         delay(20);
     }
+
+    digitalWrite(CLAMP_OPEN, HIGH);
+    delay(1300);
+    digitalWrite(CLAMP_OPEN, LOW);
+}
+
+bool validCoordinates(armcoord_t coord){
+    return getArmHeight(coord) > ARM_MIN_HEIGHT;
+    /**coord.finger_low >= 0 && coord.finger_low <= 90
+        && coord.finger_high >= 0 && coord.finger_high <= 90
+        && coord.wrist >= 0 && coord.wrist <= 90
+        && coord.thumb >= 0 && coord.thumb <= 90
+        && **/
 }
 
 /**
@@ -59,9 +99,9 @@ void resetArm(){
  * @param  serv3_ang angle in degree
  * @return           the height in cm of the arm
  */
-double getArmHeight(double serv1_ang, double serv2_ang, double serv3_ang){
+double getArmHeight(armcoord_t coord){
     return
-        ARM_JUNC_1 * cos(serv1_ang / 180 * M_PI) +
-        ARM_JUNC_2 * cos((serv1_ang  + serv2_ang) / 180 * M_PI) +
-        ARM_JUNC_3 * cos((serv1_ang  + serv2_ang  + serv3_ang) / 180 * M_PI);
+        ARM_JUNC_1 * cos(coord.wrist / 180 * M_PI) +
+        ARM_JUNC_2 * cos((coord.wrist  + coord.finger_low) / 180 * M_PI) +
+        ARM_JUNC_3 * cos((coord.wrist  + coord.finger_low + coord.finger_high) / 180 * M_PI);
 }

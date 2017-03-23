@@ -22,7 +22,7 @@
 typedef enum {
     PAKTYP_NONE,
     PAKTYP_BAD,
-    PAKTYP_PLAY = '*',
+    PAKTYP_FREE = '*',
     PAKTYP_RECORD = '#',
     PAKTYP_NACK = '?',
     PAKTYP_ACK = '!'
@@ -33,13 +33,6 @@ typedef struct {
     int data2;
     int data3;
 } pakdata_t;
-
-typedef struct {
-    char start;
-    int crc;
-    char end[2];
-} __attribute__((packed)) crc_t;
-
 
 /**
  * XBEEPacketSender
@@ -57,7 +50,7 @@ public:
 
     void sendACK();
     void sendNACK();
-    void sendPlay();
+    void sendFree();
     void sendRecord(int data1, int data2, int data3);
 };
 
@@ -67,18 +60,19 @@ public:
  * Used to receive packet from the XBEE module
  */
 class XBEEPacketReceiver {
+    bool validCRC(char crc);
+    int checkForHeader();
+    bool getData(int* data);
+    bool checkTimeout(uint32_t startTime);
+
     const char* header;
     int headerSize;
     char buffer[RECV_BUF_SIZE];
-    bool validCRC(char crc);
     uint32_t timeout;
 
 public:
     XBEEPacketReceiver(const char* header, uint32_t timeout);
-    int checkForHeader();
-    bool getData(int* data);
     paktype_t receivePacket(pakdata_t* data);
-    bool checkTimeout(uint32_t startTime);
 };
 
 #endif

@@ -1,45 +1,78 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
+#include <EEPROM.h>
+
+#include "arm.h"
 #include "protocol.h"
 
 LiquidCrystal lcd(8, 9, 2, 3, 5, 6);
 
 XBEEPacketSender XBEESender("RPM");
-XBEEPacketReceiver XBEEReceiver("RPM", 15000);
+XBEEPacketReceiver XBEEReceiver("RPM", 19000);
+
+opmod_t operatingMode = MOD_MENU;
+int lastArmPulse;
+
+paktype_t lastPacket = PAKTYP_NONE;
+pakdata_t lastData;
+
+armcoord_t currentCoordinates = {0, 0, 0};
 
 void setup(){
-    Serial.begin(9600);
     lcd.begin(16, 2);
-    lcd.setCursor(0, 0);
-    lcd.print("En attente...");
+    lcd.clear();
+    lcd.home();
+
+    lcd.print("Starting...");
+    resetArm();
+    lcd.clear();
+
+    lastArmPulse = millis();
 }
 
-int i = 0;
-int debug = 0;
-
-int g = 0;
-
-void loop(){
+void fetchIncomingPacket(){
     pakdata_t data;
     paktype_t packet = XBEEReceiver.receivePacket(&data);
-    char buffer[30];
-    memset(buffer, 0, sizeof(buffer));
-
     if(packet == PAKTYP_RECORD){
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Valeur recu:");
-
-        snprintf(buffer, 30, "%.4d %.4d %.4d", data.data1, data.data2, data.data3);
-        lcd.setCursor(0, 1);
-        lcd.print(buffer);
-
-        XBEESender.sendACK();
-    } else if(packet == PAKTYP_BAD){
-        XBEESender.sendNACK();
+        data = lastData;
     }
 
-    lcd.setCursor(15, 1);
-    lcd.print(g);
-    g = !g;
+    if(packet == PAKTYP_FREE || packet == PAKTYP_RECORD) {
+        lastPacket = packet;
+        XBEESender.sendACK();
+    }
+    else if(packet == PAKTYP_BAD) {
+        XBEESender.sendNACK();
+    }
+}
+
+
+void loop(){
+    fetchIncomingPacket();
+
+    switch(operatingMode){
+        case MOD_MENU:
+        //menu();
+        break;
+
+        case MOD_FREE:
+        // free_mod();
+        break;
+
+        case MOD_FREE_JOYSTICK:
+
+        break;
+
+        case MOD_RECORD:
+        //record();
+        break;
+
+        case MOD_PLAY:
+        //play_record();
+        break;
+    }
+
+    if(lastArmPulse - millis() >= 20){
+        manageArm();
+    }
 }

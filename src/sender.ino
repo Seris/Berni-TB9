@@ -25,9 +25,9 @@ void XBEEPacketSender::sendNACK(){
  * Send PLAY packet through XBEE module to set the operating mode of the
  * arm to Play
  */
-void XBEEPacketSender::sendPlay(){
-    this->sendHeader(PAKTYP_PLAY);
-    this->sendCRC(PAKTYP_PLAY);
+void XBEEPacketSender::sendFree(){
+    this->sendHeader(PAKTYP_FREE);
+    this->sendCRC(PAKTYP_FREE);
 }
 
 /**

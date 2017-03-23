@@ -19,7 +19,6 @@ paktype_t XBEEPacketReceiver::receivePacket(pakdata_t* data){
             switch((paktype_t) rawtype){
                 case PAKTYP_ACK:
                 case PAKTYP_NACK:
-                case PAKTYP_PLAY:
                 if(this->validCRC(rawtype)){
                     type = rawtype;
                 } else {
@@ -27,12 +26,15 @@ paktype_t XBEEPacketReceiver::receivePacket(pakdata_t* data){
                 }
                 break;
 
+                case PAKTYP_FREE:
                 case PAKTYP_RECORD:
                 if(this->getData(&data->data1)
                     && this->getData(&data->data2)
                     && this->getData(&data->data3)
                     && this->validCRC(data->data1 + data->data2 + data->data3 + PAKTYP_RECORD)){
-                    type = PAKTYP_RECORD;
+                    type = rawtype;
+                } else {
+                    type = PAKTYP_BAD;
                 }
                 break;
 
@@ -104,6 +106,6 @@ int XBEEPacketReceiver::checkForHeader(){
 }
 
 bool XBEEPacketReceiver::checkTimeout(uint32_t startTime){
-    uint32_t duration = (uint32_t) (micros() - startTime);
+    uint32_t duration = (uint32_t) (micros() - startTime + SERIAL_TIMEOUT);
     return duration < this->timeout;
 }

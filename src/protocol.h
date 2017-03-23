@@ -50,7 +50,7 @@ public:
 
     void sendACK();
     void sendNACK();
-    void sendFree();
+    void sendFree(int data1, int data2, int data3);
     void sendRecord(int data1, int data2, int data3);
 };
 

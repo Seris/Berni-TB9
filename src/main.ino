@@ -13,8 +13,7 @@ XBEEPacketReceiver XBEEReceiver("RPM", 19000);
 
 armcoord_t currentCoordinates = {0, 0, 0, 0};
 
-opmod_t operatingMode = MOD_RECORD;
-
+opmod_t operatingMode = MOD_FREE;
 int lastArmPulse;
 
 paktype_t lastPacket = PAKTYP_NONE;

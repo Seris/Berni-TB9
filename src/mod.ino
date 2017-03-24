@@ -4,11 +4,18 @@
 
 void printCurrentCoordinates(){
     char buffer[16];
-    snprintf(buffer, 16, "%.2d %.2d %.2d %.4d",
+    char* clamp;
+    if (clampStatus == CLAMP_CLOSE) {
+        clamp = "Close";
+    } else {
+        clamp = "Open ";
+    }
+
+    snprintf(buffer, 16, "%.2d %.2d %.2d %s",
         (int) currentCoordinates.wrist,
         (int) currentCoordinates.finger_low,
         (int) currentCoordinates.finger_high,
-        (int) currentCoordinates.thumb);
+        clamp);
     lcd.print(buffer);
 }
 
@@ -91,10 +98,9 @@ bool recordCoordinates(armcoord_t coord){
 
 void modRecord(){
     armcoord_t coord;
-    char buffer[16];
 
     lcd.home();
-    lcd.print("Rec. SAVE&EXIT[*]");
+    lcd.print("Rec. SAV&EXIT[*]");
 
     if(!recordStarted){
         initRecording();
@@ -140,7 +146,7 @@ bool playingStarted = false;
 int playIndex;
 armdata_head_t recordHead;
 armrecord_t currentRecord;
-int playTimeOrigin;
+uint32_t playTimeOrigin;
 
 /**
  * Init all variables to record
@@ -239,7 +245,6 @@ void modPlay(){
  */
 void modFree(){
     armcoord_t coord;
-    char buffer[16];
 
     lcd.home();
     lcd.print("Free mod EXIT[*]");
@@ -296,51 +301,67 @@ void modMenu(){
 
         lcd.clear();
     } else if(key == '4'){
-        lcd.clear();
-        lcd.home();
-        lcd.print("Not yet");
-        lcd.setCursor(0, 1);
-        lcd.print("implemented");
-        delay(2500);
+        operatingMode = MOD_JOYSTICK;
         lcd.clear();
     }
 }
 
 
 
-int lastJoystickPull = 0;
+uint32_t lastJoystickPull = 0;
 void modJoystick(){
-    double x, y;
     armcoord_t coord = currentCoordinates;
-    char buffer[16];
+    char key;
+    double x, y;
 
-    if(millis() - lastJoystickPull > 200){
+    lcd.home();
+    lcd.print("Joystick EXIT[*]");
+    lcd.setCursor(0, 1);
+    printCurrentCoordinates();
+
+    if(millis() - lastJoystickPull > 100){
         x = (double) analogRead(JOYSTICK_X);
         y = (double) analogRead(JOYSTICK_Y);
 
-        if(x > JOYSTICK_X0_MIN && x < JOYSTICK_X0_MAX){
-            x = 0;
-        } else {
-            x = (x - JOYSTICK_X0_MIN) / 50;
+        if(x < 400){
+            coord.wrist -= 3;
+        } else if(x > 700){
+            coord.wrist += 3;
         }
 
-        if(y > JOYSTICK_Y0_MIN && y < JOYSTICK_Y0_MAX){
-            y = 0;
-        } else {
-            y = (y - JOYSTICK_Y0_MIN) / 50;
+        if(y < 400){
+            coord.finger_low += 1.5;
+        } else if(y > 700){
+            coord.finger_low -= 1.5;
         }
 
-        lcd.home();
-        coord.wrist += x;
-        snprintf(buffer, 16, "%.2d ", (int) coord.wrist);
-        lcd.print(buffer);
+        if(coord.wrist < -90 ) coord.wrist = -90;
+        else if (coord.wrist > 90) coord.wrist = 90;
+
+        if(coord.finger_low < -90 ) coord.finger_low = -90;
+        else if (coord.finger_low > 90) coord.finger_low = 90;
+
+        coord.finger_high = coord.finger_low;
+
         if(validCoordinates(coord)){
-            lcd.print("valid  ");
             currentCoordinates = coord;
-        } else {
-            lcd.print("invalid");
         }
 
         lastJoystickPull = millis();
+    }
+
+    key = keypad.getKey();
+    if(key == '1'){
+        currentCoordinates.thumb = 0;
+    } else if(key == '3'){
+        currentCoordinates.thumb = 1024;
+    } else if(key == EXIT_CHAR){
+        lcd.clear();
+        lcd.home();
+        lcd.print("Exiting...");
+        resetArm();
+
+        operatingMode = MOD_MENU;
+        lcd.clear();
     }
 }

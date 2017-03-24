@@ -13,6 +13,7 @@ XBEEPacketReceiver::XBEEPacketReceiver(const char* header, uint32_t timeout){
 paktype_t XBEEPacketReceiver::receivePacket(pakdata_t* data){
     char rawtype = 0;
     paktype_t type = PAKTYP_NONE;
+    
     if(this->checkForHeader()){
         if(Serial.readBytes(&rawtype, 1) == 1){
             switch((paktype_t) rawtype){

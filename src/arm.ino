@@ -47,8 +47,8 @@ double dataToAngle(int data){
  */
 void setServoAngle(int servo, double angle){
     int32_t duration = (int32_t) (1500 - angle / 90 * 1000);
-    if(duration > 1500)
-        duration = 1500;
+    if(duration > 2500)
+        duration = 2500;
     else if(duration < 500)
         duration = 500;
 
@@ -93,11 +93,7 @@ void resetArm(){
  * @return       [description]
  */
 bool validCoordinates(armcoord_t coord){
-    return getArmHeight(coord) > ARM_MIN_HEIGHT
-        && coord.finger_low >= 0 && coord.finger_low <= 90
-        && coord.finger_high >= 0 && coord.finger_high <= 90
-        && coord.wrist >= 0 && coord.wrist <= 90
-        && coord.thumb >= 0 && coord.thumb <= 1024;
+    return getArmHeight(coord) > ARM_MIN_HEIGHT;
 }
 
 /**

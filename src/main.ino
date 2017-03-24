@@ -28,7 +28,7 @@ void setup(){
     delay(500);
 
     lcd.home();
-    lcd.print("XBArm (v1.0)");
+    lcd.print("Berni (v1.0)");
 
     delay(500);
 
@@ -67,7 +67,7 @@ void loop(){
         break;
 
         case MOD_JOYSTICK:
-        //modJoystick();
+        modJoystick();
         break;
 
         case MOD_RECORD:

@@ -11,8 +11,8 @@
 /**
  * Port number of the joystick
  */
-#define JOYSTICK_X 7
-#define JOYSTICK_Y 6
+#define JOYSTICK_X 4
+#define JOYSTICK_Y 7
 
 /**
  * Joystick Values

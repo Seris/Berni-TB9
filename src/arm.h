@@ -15,10 +15,10 @@
 /**
  * Value are in centimeters
  */
-#define ARM_MIN_HEIGHT -1.8
-#define ARM_JUNC_1 6
-#define ARM_JUNC_2 6
-#define ARM_JUNC_3 17
+#define ARM_MIN_HEIGHT -1.5
+#define ARM_JUNC_1 7
+#define ARM_JUNC_2 7
+#define ARM_JUNC_3 20
 
 
 typedef struct {

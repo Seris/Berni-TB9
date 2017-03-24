@@ -138,10 +138,11 @@ void modFree(){
     }
 
     lcd.setCursor(0, 1);
-    snprintf(buffer, 16, "coord: %.2d %.2d %.2d",
+    snprintf(buffer, 16, "%.2d %.2d %.2d %.4d",
         (int) currentCoordinates.wrist,
         (int) currentCoordinates.finger_low,
-        (int) currentCoordinates.finger_high);
+        (int) currentCoordinates.finger_high,
+        (int) currentCoordinates.thumb);
     lcd.print(buffer);
 }
 

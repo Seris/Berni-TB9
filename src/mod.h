@@ -1,3 +1,4 @@
+
 #ifndef MOD_H
 #define MOD_H
 
@@ -49,5 +50,6 @@ typedef struct {
 
 void modJoystick();
 void modFree();
+void modRecord();
 
 #endif

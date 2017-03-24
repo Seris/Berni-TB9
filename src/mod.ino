@@ -2,11 +2,12 @@
 #include "mod.h"
 #include "arm.h"
 
-bool recordStarted = false;
-int startRecordTime;
-int eepromAddr;
-armdata_head_t eepromHead;
 
+/**
+ * Convert raw data from the glove to proper angle
+ * @param  data raw data from the glove
+ * @return      proper angles for each part of the arm
+ */
 armcoord_t convertDataToCoord(pakdata_t data){
     armcoord_t coord;
 
@@ -19,6 +20,105 @@ armcoord_t convertDataToCoord(pakdata_t data){
     return coord;
 }
 
+
+/**
+ * RECORD Mod of the arm
+ */
+bool recordStarted = false;
+armdata_head_t eepromHead;
+int startRecordTime;
+int eepromAddr;
+
+/**
+ * Init every variables
+ */
+void initRecording(){
+    eepromAddr = sizeof(armdata_head_t);
+    eepromHead.count = 0;
+    eepromHead.magic = RECORD_MAGIC;
+    eepromHead.check = -(eepromHead.count + eepromHead.magic);
+
+    EEPROM.put(0, eepromHead);
+
+    startRecordTime = millis();
+    recordStarted = true;
+}
+
+/**
+ * Commit record into memory by updating the head
+ */
+void commitRecord(){
+    eepromHead.check = -(eepromHead.count + eepromHead.magic);
+    EEPROM.put(0, eepromHead);
+    recordStarted = false;
+}
+
+/**
+ * Record coordinates into EEPROM
+ * @param  coord coordinate that'll be recorded
+ * @return       true on success, false when EEPROM is full
+ */
+bool recordCoordinates(armcoord_t coord){
+    armrecord_t record;
+    bool recorded = false;
+
+    if(eepromAddr + sizeof(record) > EEPROM.length()){
+        record.fingers = (int16_t) lastData.data1;
+        record.thumb = (int16_t) lastData.data2;
+        record.wrist = (int16_t) lastData.data3;
+        record.time = millis() - startRecordTime;
+
+        EEPROM.put(eepromAddr, record);
+        eepromAddr += sizeof(record);
+        eepromHead.count++;
+
+        recorded = true;
+    }
+
+    return recorded;
+}
+
+void modRecord(){
+    armcoord_t coord;
+    char buffer[16];
+
+    lcd.home();
+    lcd.print("Rec mod  EXIT[*]");
+
+    if(!recordStarted){
+        initRecording();
+    }
+
+    if(lastPacket == PAKTYP_RECORD){
+        coord = convertDataToCoord(lastData);
+
+        if(validCoordinates(coord)){
+            currentCoordinates = coord;
+
+            lcd.setCursor(0, 1);
+            if(recordCoordinates(coord)){
+                // lcd.print("Recording... ");
+            } else {
+                // lcd.print("Memory full !");
+            }
+
+            // DEBUG
+            lcd.setCursor(0, 1);
+            snprintf(buffer, 16, "addr: %d (%d)",
+                (int) eepromAddr, eepromHead.count);
+            lcd.print(buffer);
+        }
+    } else if(lastPacket == PAKTYP_FREE){
+        operatingMode = MOD_FREE;
+        commitRecord();
+    }
+}
+
+
+
+/**
+ * FREE Mod of the arm
+ */
 void modFree(){
     armcoord_t coord;
     char buffer[16];
@@ -45,60 +145,6 @@ void modFree(){
     lcd.print(buffer);
 }
 
-void modRecord(){
-    armrecord_t record;
-    armcoord_t coord;
-    char buffer[16];
-
-    lcd.home();
-    lcd.print("Rec mod  EXIT[*]");
-
-    if(!recordStarted){
-        startRecordTime = millis();
-        eepromAddr = sizeof(armdata_head_t);
-        eepromHead.count = 0;
-        EEPROM.put(0, eepromHead);
-        recordStarted = true;
-    }
-
-    if(lastPacket == PAKTYP_RECORD){
-        coord = convertDataToCoord(lastData);
-        lcd.setCursor(0, 1);
-        snprintf(buffer, 16, "coord: %.2d %.2d %.2d",
-            (int) currentCoordinates.wrist,
-            (int) currentCoordinates.finger_low,
-            (int) currentCoordinates.finger_high);
-        lcd.print(buffer);
-
-        lcd.setCursor(0, 1);
-        if(validCoordinates(coord)){
-            currentCoordinates = coord;
-
-            lcd.setCursor(0, 1);
-            if(eepromAddr + sizeof(record) > EEPROM.length()){
-                lcd.print("Recording...");
-
-                record.fingers = (int16_t) lastData.data1;
-                record.thumb = (int16_t) lastData.data2;
-                record.wrist = (int16_t) lastData.data3;
-                record.time = millis() - startRecordTime;
-
-                EEPROM.put(eepromAddr, record);
-                eepromAddr += sizeof(record);
-                eepromHead.count++;
-            } else {
-                lcd.print("Memory full");
-            }
-
-            lcd.setCursor(0, 1);
-            snprintf(buffer, 16, "addr: %d (%d)",
-                (int) eepromAddr, eepromHead.count);
-            lcd.print(buffer);
-        }
-    } else if(lastPacket == PAKTYP_FREE){
-        operatingMode = MOD_FREE;
-    }
-}
 
 
 int lastJoystickPull = 0;

@@ -24,22 +24,12 @@
 
 
 typedef struct {
-    int16_t fingers;
-    int16_t thumb;
-    int16_t wrist;
-    int time;
-} __attribute__((packed)) armrecord_t;
-
-typedef struct {
     double finger_low;
     double finger_high;
     double wrist;
     int16_t thumb;
 } armcoord_t;
 
-typedef struct {
-    int count;
-} armdata_head_t;
 
 void resetArm();
 void pulse(int port, int32_t duration);

@@ -1,6 +1,10 @@
 #ifndef MOD_H
 #define MOD_H
 
+#include <Arduino.h>
+
+#define RECORD_MAGIC 0x42424242
+
 /**
  * Port number of the joystick
  */
@@ -29,6 +33,19 @@ typedef enum {
     MOD_PLAY,
     MOD_RECORD
 } opmod_t;
+
+typedef struct {
+    int16_t fingers;
+    int16_t thumb;
+    int16_t wrist;
+    int time;
+} __attribute__((packed)) armrecord_t;
+
+typedef struct {
+    int count;
+    int32_t magic;
+    int32_t check;
+} armdata_head_t;
 
 void modJoystick();
 void modFree();

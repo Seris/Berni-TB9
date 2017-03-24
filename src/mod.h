@@ -4,7 +4,9 @@
 
 #include <Arduino.h>
 
-#define RECORD_MAGIC 0x42424242
+#define RECORD_MAGIC 42
+
+#define EXIT_CHAR '*'
 
 /**
  * Port number of the joystick
@@ -51,5 +53,6 @@ typedef struct {
 void modJoystick();
 void modFree();
 void modRecord();
+void modMenu();
 
 #endif

@@ -13,7 +13,7 @@ XBEEPacketReceiver XBEEReceiver("RPM", 19000);
 
 armcoord_t currentCoordinates = {0, 0, 0, 0};
 
-opmod_t operatingMode = MOD_FREE;
+opmod_t operatingMode = MOD_MENU;
 int lastArmPulse;
 
 paktype_t lastPacket = PAKTYP_NONE;
@@ -24,8 +24,15 @@ void setup(){
 
     lcd.begin(16, 2);
     lcd.clear();
-    lcd.home();
 
+    delay(500);
+
+    lcd.home();
+    lcd.print("XBArm (v1.0)");
+
+    delay(500);
+
+    lcd.setCursor(0, 1);
     lcd.print("Starting...");
     resetArm();
     lcd.clear();
@@ -52,7 +59,7 @@ void loop(){
 
     switch(operatingMode){
         case MOD_MENU:
-        //modMenu();
+        modMenu();
         break;
 
         case MOD_FREE:
@@ -68,7 +75,7 @@ void loop(){
         break;
 
         case MOD_PLAY:
-        //modPlay();
+        modPlay();
         break;
     }
 

@@ -3,7 +3,7 @@
 
 
 int clampStatus = CLAMP_OPEN;
-int clampStartMoving = 0;
+uint32_t clampStartMoving = 0;
 
 /**
  * Send pulse to arm
@@ -15,17 +15,19 @@ void manageArm(){
 
     if(currentCoordinates.thumb > 520 && clampStatus == CLAMP_OPEN){
         digitalWrite(CLAMP_CLOSE, HIGH);
-        clampStatus = CLAMP_CLOSE;
+        digitalWrite(CLAMP_OPEN, LOW);
         clampStartMoving = millis();
+        clampStatus = CLAMP_CLOSE;
     } else if(currentCoordinates.thumb <= 520 && clampStatus == CLAMP_CLOSE) {
         digitalWrite(CLAMP_OPEN, HIGH);
-        clampStatus = CLAMP_OPEN;
+        digitalWrite(CLAMP_CLOSE, LOW);
         clampStartMoving = millis();
+        clampStatus = CLAMP_OPEN;
     }
 
-    if(millis() - clampStartMoving > 1300){
-        digitalWrite(CLAMP_OPEN, LOW);
+    if(millis() - clampStartMoving > 1100){
         digitalWrite(CLAMP_CLOSE, LOW);
+        digitalWrite(CLAMP_OPEN, LOW);
     }
 }
 
@@ -76,11 +78,20 @@ void resetArm(){
         delay(20);
     }
 
+    currentCoordinates = {0, 0, 0, 0};
+
     digitalWrite(CLAMP_OPEN, HIGH);
     delay(1300);
     digitalWrite(CLAMP_OPEN, LOW);
+    clampStatus = CLAMP_OPEN;
+    clampStartMoving = 0;
 }
 
+/**
+ * Check if coordinates are valid
+ * @param  coord [description]
+ * @return       [description]
+ */
 bool validCoordinates(armcoord_t coord){
     return getArmHeight(coord) > ARM_MIN_HEIGHT
         && coord.finger_low >= 0 && coord.finger_low <= 90

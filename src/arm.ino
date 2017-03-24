@@ -15,12 +15,10 @@ void manageArm(){
 
     if(currentCoordinates.thumb > 520 && clampStatus == CLAMP_OPEN){
         digitalWrite(CLAMP_CLOSE, HIGH);
-        digitalWrite(CLAMP_OPEN, LOW);
         clampStatus = CLAMP_CLOSE;
         clampStartMoving = millis();
     } else if(currentCoordinates.thumb <= 520 && clampStatus == CLAMP_CLOSE) {
         digitalWrite(CLAMP_OPEN, HIGH);
-        digitalWrite(CLAMP_CLOSE, LOW);
         clampStatus = CLAMP_OPEN;
         clampStartMoving = millis();
     }
@@ -88,7 +86,7 @@ bool validCoordinates(armcoord_t coord){
         && coord.finger_low >= 0 && coord.finger_low <= 90
         && coord.finger_high >= 0 && coord.finger_high <= 90
         && coord.wrist >= 0 && coord.wrist <= 90
-        && coord.thumb >= 0 && coord.thumb <= 90;
+        && coord.thumb >= 0 && coord.thumb <= 1024;
 }
 
 /**

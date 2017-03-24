@@ -12,8 +12,6 @@
 #define CLAMP_CLOSE 47
 #define CLAMP_OPEN 48
 
-#define CLAMP_CLOSING 4242
-
 /**
  * Value are in centimeters
  */
